@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +15,12 @@ import java.util.List;
 public class Server {
 
     private List<Connection> connections = Collections.synchronizedList(new ArrayList<Connection>());
+    private List<Messages> messages = Collections.synchronizedList(new ArrayList<Messages>());
+    //    private ArrayDeque<String> messages = new ArrayDeque<String>();
+    //    private ArrayDeque<String> names = new ArrayDeque<String>();
+
     private ServerSocket server;
+
 
     public Server() {
         try {
@@ -72,12 +78,6 @@ public class Server {
         public void run() {
             try {
 
-                // create queu from messages. we have to store in this queuе no more than 10 messages
-                // when new user has joined we send theese messages to him before the dialog has started.
-                // the size of queue is 10 messages/ i'll read line and when my queue has 10 messages, I'll delete the first message
-                // from the queue. When someone cames now I'll send him the last 10 messages from chat. The all queue.
-
-
                 name = in.readLine();
 
                 synchronized (connections) {
@@ -85,9 +85,25 @@ public class Server {
                         c.out.println(name + " has came now");
                     }
                 }
+
+                Connection lastClient = connections.get(connections.size() - 1); // got last client
+                synchronized (messages) {
+                    for (Messages m : messages) {
+                        lastClient.out.println(m);
+                    }
+                }
+
+
                 String str;
                 while (true) {
                     str = in.readLine();
+                    synchronized (messages) {
+                        Messages ms = new Messages(name, str);
+                        messages.add(ms);
+                        if (messages.size() == 10) {
+                            messages.remove(messages.size() - 9); // delete first element - first message
+                        }
+                    }
                     if (str.equals("exit")) break;
 
                     synchronized (connections) {
