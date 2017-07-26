@@ -101,7 +101,7 @@ public class Server {
                         Messages ms = new Messages(name, str);
                         messages.add(ms);
                         if (messages.size() == 10) {
-                            messages.remove(messages.size() - 9); // delete first element - first message
+                            messages.remove(messages.size() - 10); // delete first element - first message
                         }
                     }
                     if (str.equals("exit")) break;
